@@ -15,7 +15,7 @@ Use this checklist to ensure a smooth deployment process.
 - [ ] Create Railway account
 - [ ] Connect GitHub repository
 - [ ] Create new project
-- [ ] Set root directory to `/backend`
+- [ ] Set root directory to `backend` (NO leading slash)
 - [ ] Add environment variables:
   - [ ] `FLASK_ENV=production`
   - [ ] `ALLOWED_ORIGINS=https://buildcustomresume.com,https://www.buildcustomresume.com`
@@ -35,7 +35,7 @@ Use this checklist to ensure a smooth deployment process.
 ### Vercel (Recommended)
 - [ ] Create Vercel account
 - [ ] Import GitHub repository
-- [ ] Set root directory to `/frontend`
+- [ ] Set root directory to `frontend` (NO leading slash)
 - [ ] Add environment variable:
   - [ ] `REACT_APP_API_URL=https://your-backend-url.railway.app`
 - [ ] Deploy

@@ -43,7 +43,7 @@ You have several options for hosting. Here are the recommended approaches:
 
 3. **Configure Backend Service**
    - Railway will auto-detect Python
-   - Set root directory to `/backend`
+   - Set root directory to `backend` (NO leading slash)
    - Add environment variables:
      ```
      FLASK_ENV=production
@@ -68,7 +68,7 @@ You have several options for hosting. Here are the recommended approaches:
    - Go to https://vercel.com
    - Sign up with GitHub
    - Import your repository
-   - Set root directory to `/frontend`
+   - Set root directory to `frontend` (NO leading slash)
    - Add environment variable:
      ```
      REACT_APP_API_URL=https://your-backend-url.railway.app
@@ -222,7 +222,7 @@ Follow Render's DNS instructions, which typically include:
 ### Step 2: Configure Backend Component
 
 - Component Type: Web Service
-- Source Directory: `/backend`
+- Source Directory: `backend` (NO leading slash)
 - Build Command: `pip install -r requirements.txt`
 - Run Command: `gunicorn --config gunicorn_config.py wsgi:app`
 - Environment Variables:
@@ -234,7 +234,7 @@ Follow Render's DNS instructions, which typically include:
 ### Step 3: Configure Frontend Component
 
 - Component Type: Static Site
-- Source Directory: `/frontend`
+- Source Directory: `frontend` (NO leading slash)
 - Build Command: `npm install && REACT_APP_API_URL=$API_URL npm run build`
 - Output Directory: `build`
 - Environment Variables:
