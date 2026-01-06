@@ -74,21 +74,47 @@ function App() {
       setJobPosting('');
       document.getElementById('resume-upload').value = '';
     } catch (err) {
-      if (err.response && err.response.data) {
-        // Try to parse error message from blob
-        const reader = new FileReader();
-        reader.onload = () => {
-          try {
-            const errorData = JSON.parse(reader.result);
-            setError(errorData.error || 'An error occurred');
-          } catch {
-            setError('An error occurred while processing your resume');
+      console.error('Error details:', err);
+      console.error('Error response:', err.response);
+      console.error('API URL:', process.env.REACT_APP_API_URL || 'Not set');
+      
+      let errorMessage = 'An error occurred while processing your resume';
+      
+      if (err.response) {
+        // Server responded with error
+        if (err.response.data) {
+          // Try to parse error message from blob or JSON
+          if (err.response.data instanceof Blob) {
+            const reader = new FileReader();
+            reader.onload = () => {
+              try {
+                const errorData = JSON.parse(reader.result);
+                setError(errorData.error || errorMessage);
+              } catch {
+                setError(`Server error (${err.response.status}): ${err.response.statusText}`);
+              }
+            };
+            reader.readAsText(err.response.data);
+            return; // Exit early, error will be set in reader.onload
+          } else if (typeof err.response.data === 'object') {
+            errorMessage = err.response.data.error || err.response.data.message || errorMessage;
+          } else {
+            errorMessage = `Server error (${err.response.status}): ${err.response.statusText}`;
           }
-        };
-        reader.readAsText(err.response.data);
-      } else {
-        setError(err.message || 'An error occurred while processing your resume');
+        } else {
+          errorMessage = `Server error (${err.response.status}): ${err.response.statusText}`;
+        }
+      } else if (err.request) {
+        // Request was made but no response received
+        errorMessage = 'Unable to connect to server. Please check your internet connection and ensure the backend is running.';
+        console.error('No response received:', err.request);
+      } else if (err.code === 'ERR_NETWORK' || err.message.includes('Network Error')) {
+        errorMessage = 'Network error: Cannot reach the server. Please check if the backend API is accessible.';
+      } else if (err.message) {
+        errorMessage = err.message;
       }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

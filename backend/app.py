@@ -73,6 +73,12 @@ def enhance_resume():
         )
     
     except Exception as e:
+        # Log the error for debugging
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"Error in enhance_resume: {str(e)}")
+        print(f"Traceback: {error_trace}")
+        
         # Clean up on error
         if 'filepath' in locals() and os.path.exists(filepath):
             try:
@@ -84,7 +90,16 @@ def enhance_resume():
                 os.remove(enhanced_resume_path)
             except:
                 pass
-        return jsonify({'error': str(e)}), 500
+        
+        # Return user-friendly error message
+        error_message = str(e)
+        # Don't expose internal errors in production, but log them
+        if os.getenv('FLASK_ENV') == 'production':
+            # In production, provide generic message but log details
+            return jsonify({'error': 'An error occurred while processing your resume. Please try again or contact support.'}), 500
+        else:
+            # In development, show full error
+            return jsonify({'error': error_message, 'traceback': error_trace}), 500
 
 if __name__ == '__main__':
     # Development mode
