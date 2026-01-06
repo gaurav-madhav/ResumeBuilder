@@ -12,21 +12,21 @@ allowed_origins = os.getenv('ALLOWED_ORIGINS', 'http://localhost:3000,https://bu
 # Remove empty strings from origins list
 allowed_origins = [origin.strip() for origin in allowed_origins if origin.strip()]
 
-# Configure CORS - allow all methods and headers for API routes
-CORS(app, 
-     resources={
-         r"/api/*": {
-             "origins": allowed_origins if allowed_origins else "*",
-             "methods": ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
-             "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
-             "supports_credentials": True,
-             "max_age": 3600
-         }
-     },
-     # Also allow CORS for all routes as fallback
-     origins=allowed_origins if allowed_origins else "*",
-     methods=["GET", "POST", "OPTIONS"],
-     allow_headers=["Content-Type", "Authorization"])
+# Configure CORS - Simple and permissive for now to debug
+if allowed_origins and allowed_origins != ['*']:
+    CORS(app, 
+         resources={
+             r"/api/*": {
+                 "origins": allowed_origins,
+                 "methods": ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
+                 "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
+                 "supports_credentials": True,
+                 "max_age": 3600
+             }
+         })
+else:
+    # Allow all origins if not specified (for debugging)
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # Configuration
 UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', 'uploads')
@@ -69,10 +69,16 @@ def test_endpoint():
 @app.route('/api/enhance-resume', methods=['POST', 'OPTIONS'])
 @app.route('/api/enhance-resume/', methods=['POST', 'OPTIONS'])  # Handle trailing slash
 def enhance_resume():
-    # Handle CORS preflight - flask-cors should handle this, but explicit for safety
+    # Log the request for debugging
+    print(f"Request received: {request.method} {request.path}")
+    print(f"Headers: {dict(request.headers)}")
+    
+    # Handle CORS preflight
     if request.method == 'OPTIONS':
-        response = jsonify({'status': 'ok'})
+        print("Handling OPTIONS request")
+        response = jsonify({'status': 'ok', 'message': 'CORS preflight successful'})
         return response
+    
     try:
         # Check if files are present
         if 'resume' not in request.files:
@@ -109,8 +115,6 @@ def enhance_resume():
         os.remove(filepath)
         
         # Send enhanced resume
-        # Note: Temporary files in temp_dir will be cleaned up by the OS
-        # For production, consider implementing a cleanup job
         return send_file(
             enhanced_resume_path,
             as_attachment=True,
@@ -147,9 +151,33 @@ def enhance_resume():
             # In development, show full error
             return jsonify({'error': error_message, 'traceback': error_trace}), 500
 
+# Add error handler for 405
+@app.errorhandler(405)
+def method_not_allowed(e):
+    print(f"405 Error: Method {request.method} not allowed for {request.path}")
+    print(f"Request URL: {request.url}")
+    print(f"Request method: {request.method}")
+    
+    # Get all routes for this path
+    matching_routes = []
+    for rule in app.url_map.iter_rules():
+        if str(rule) == request.path or str(rule) == request.path.rstrip('/'):
+            matching_routes.append({
+                'path': str(rule),
+                'methods': list(rule.methods)
+            })
+    
+    return jsonify({
+        'error': f'Method {request.method} not allowed',
+        'path': request.path,
+        'request_method': request.method,
+        'matching_routes': matching_routes,
+        'message': 'Please use POST method to enhance resume',
+        'allowed_methods': ['POST', 'OPTIONS']
+    }), 405
+
 if __name__ == '__main__':
     # Development mode
     debug_mode = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
     port = int(os.getenv('PORT', 5000))
     app.run(debug=debug_mode, host='0.0.0.0', port=port)
-
