@@ -9,11 +9,24 @@ app = Flask(__name__)
 
 # CORS configuration - allow your domain
 allowed_origins = os.getenv('ALLOWED_ORIGINS', 'http://localhost:3000,https://buildcustomresume.com,https://www.buildcustomresume.com').split(',')
+# Remove empty strings from origins list
+allowed_origins = [origin.strip() for origin in allowed_origins if origin.strip()]
+
+# Configure CORS - allow all methods and headers for API routes
 CORS(app, 
-     origins=allowed_origins,
-     methods=['GET', 'POST', 'OPTIONS'],
-     allow_headers=['Content-Type'],
-     supports_credentials=True)
+     resources={
+         r"/api/*": {
+             "origins": allowed_origins if allowed_origins else "*",
+             "methods": ["GET", "POST", "OPTIONS", "PUT", "DELETE"],
+             "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
+             "supports_credentials": True,
+             "max_age": 3600
+         }
+     },
+     # Also allow CORS for all routes as fallback
+     origins=allowed_origins if allowed_origins else "*",
+     methods=["GET", "POST", "OPTIONS"],
+     allow_headers=["Content-Type", "Authorization"])
 
 # Configuration
 UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', 'uploads')
@@ -41,14 +54,24 @@ def list_routes():
         })
     return jsonify({'routes': routes}), 200
 
+@app.route('/api/test', methods=['GET', 'POST', 'OPTIONS'])
+def test_endpoint():
+    """Test endpoint to verify routing works"""
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok', 'method': 'OPTIONS'}), 200
+    return jsonify({
+        'status': 'ok',
+        'method': request.method,
+        'headers': dict(request.headers),
+        'cors_configured': True
+    }), 200
+
 @app.route('/api/enhance-resume', methods=['POST', 'OPTIONS'])
+@app.route('/api/enhance-resume/', methods=['POST', 'OPTIONS'])  # Handle trailing slash
 def enhance_resume():
-    # Handle CORS preflight
+    # Handle CORS preflight - flask-cors should handle this, but explicit for safety
     if request.method == 'OPTIONS':
         response = jsonify({'status': 'ok'})
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
-        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
         return response
     try:
         # Check if files are present
