@@ -81,8 +81,8 @@ You have several options for hosting. Here are the recommended approaches:
    - Import your repository
    - Build settings:
      - Base directory: `frontend`
-     - Build command: `npm run build`
-     - Publish directory: `frontend/build`
+     - Build command: `npm install && npm run build`
+     - Publish directory: `build`
    - Add environment variable:
      ```
      REACT_APP_API_URL=https://your-backend-url.railway.app
