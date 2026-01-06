@@ -122,10 +122,15 @@ function App() {
 
   return (
     <div className="App">
+      <div className="top-header">
+        <div className="top-header-content">
+          <div className="logo">BuildCustomResume</div>
+        </div>
+      </div>
       <div className="container">
         <header className="header">
-          <h1>Resume Builder</h1>
-          <p>Enhance your resume with keywords from job postings</p>
+          <h1>AI-Powered Resume Enhancer</h1>
+          <p>Optimize your resume with targeted keywords from job descriptions. Get noticed by ATS systems and hiring managers.</p>
         </header>
 
         <form onSubmit={handleSubmit} className="form">
@@ -187,17 +192,17 @@ function App() {
             className="submit-button"
             disabled={loading}
           >
-            {loading ? 'Processing...' : 'Enhance Resume'}
+            {loading ? 'Processing...' : 'Enhance My Resume'}
           </button>
         </form>
 
         <div className="info-section">
-          <h2>How it works</h2>
+          <h2>How It Works</h2>
           <ul>
-            <li>Upload your resume in PDF, DOC, or DOCX format</li>
-            <li>Paste the job posting or key responsibilities</li>
-            <li>Our AI extracts keywords and enhances your resume</li>
-            <li>Download your optimized resume in your preferred format</li>
+            <li>Upload your existing resume in PDF, DOC, or DOCX format</li>
+            <li>Paste the job description or key responsibilities</li>
+            <li>Our AI analyzes and extracts relevant keywords automatically</li>
+            <li>Download your optimized, ATS-friendly resume instantly</li>
           </ul>
         </div>
       </div>

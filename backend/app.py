@@ -9,7 +9,11 @@ app = Flask(__name__)
 
 # CORS configuration - allow your domain
 allowed_origins = os.getenv('ALLOWED_ORIGINS', 'http://localhost:3000,https://buildcustomresume.com,https://www.buildcustomresume.com').split(',')
-CORS(app, origins=allowed_origins)
+CORS(app, 
+     origins=allowed_origins,
+     methods=['GET', 'POST', 'OPTIONS'],
+     allow_headers=['Content-Type'],
+     supports_credentials=True)
 
 # Configuration
 UPLOAD_FOLDER = os.getenv('UPLOAD_FOLDER', 'uploads')
@@ -25,8 +29,27 @@ def allowed_file(filename):
 def health_check():
     return jsonify({'status': 'healthy'}), 200
 
-@app.route('/api/enhance-resume', methods=['POST'])
+@app.route('/api/routes', methods=['GET'])
+def list_routes():
+    """Debug endpoint to list all registered routes"""
+    routes = []
+    for rule in app.url_map.iter_rules():
+        routes.append({
+            'endpoint': rule.endpoint,
+            'methods': list(rule.methods),
+            'path': str(rule)
+        })
+    return jsonify({'routes': routes}), 200
+
+@app.route('/api/enhance-resume', methods=['POST', 'OPTIONS'])
 def enhance_resume():
+    # Handle CORS preflight
+    if request.method == 'OPTIONS':
+        response = jsonify({'status': 'ok'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        return response
     try:
         # Check if files are present
         if 'resume' not in request.files:
